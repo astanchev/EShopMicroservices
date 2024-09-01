@@ -1,3 +1,5 @@
+using Discount.Grpc;
+
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -7,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 var assembly = typeof(Program).Assembly;
 var dbConnection = builder.Configuration.GetConnectionString("Database");
 var redis = builder.Configuration.GetConnectionString("Redis");
+var grpcUrl = builder.Configuration["GrpcSettings:DiscountUrl"];
 
 builder.Services.AddCarter();
 
@@ -31,6 +34,22 @@ builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = redis;
     //options.InstanceName = "Basket";
+});
+
+//Grpc Services
+builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(options =>
+{
+    options.Address = new Uri(grpcUrl!);
+})
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    var handler = new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback =
+        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    };
+
+    return handler;
 });
 
 //Cross-Cutting Services
