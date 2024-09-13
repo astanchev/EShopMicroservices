@@ -37,6 +37,7 @@ public class DiscountService
         }
 
         dbContext.Coupons.Add(coupon);
+
         await dbContext.SaveChangesAsync();
 
         logger.LogInformation("Discount is successfully created. ProductName : {ProductName}", coupon.ProductName);
